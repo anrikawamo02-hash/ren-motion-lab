@@ -13,6 +13,43 @@
   const renBase = document.getElementById('renImage') || document.querySelector('.ren-base');
   const eyeLayer = document.getElementById('eyeLayer');
   const mouthLayer = document.getElementById('mouthLayer');
+  // 試作動画は送信ボタンの既存動作を利用。追加ボタンや画面変更はしない。
+  const renMotionVideo = document.getElementById('renMotionVideo');
+  const portrait = document.querySelector('.portrait');
+  let renMotionPlaying = false;
+
+  function endRenMotion() {
+    if (!renMotionVideo || !portrait) return;
+    renMotionPlaying = false;
+    portrait.classList.remove('is-motion-playing');
+    renMotionVideo.pause();
+    try { renMotionVideo.currentTime = 0; } catch (_) {}
+    if (activeAssets && eyeAvailability.half) {
+      stopBlinking();
+      scheduleNextBlink();
+    }
+  }
+
+  function playRenMotion() {
+    if (!renMotionVideo || !portrait || renMotionPlaying) return;
+    renMotionPlaying = true;
+    stopMouthPractice();
+    stopBlinking();
+    renMotionVideo.currentTime = 0;
+    const start = renMotionVideo.play();
+    if (start && typeof start.then === 'function') {
+      start.then(() => {
+        if (renMotionPlaying) portrait.classList.add('is-motion-playing');
+      }).catch((error) => {
+        console.warn('Motion video playback failed:', error);
+        endRenMotion();
+      });
+    } else {
+      portrait.classList.add('is-motion-playing');
+    }
+  }
+  renMotionVideo?.addEventListener('ended', endRenMotion);
+  renMotionVideo?.addEventListener('error', endRenMotion);
 
   const JP = {
     waiting: '\u5f85\u3063\u3066\u308b',
@@ -465,6 +502,7 @@
       return;
     }
 
+    if (renMotionPlaying) endRenMotion();
     stopBlinking();
     stopMouthPractice();
 
@@ -685,6 +723,8 @@
 
     if (status) status.textContent = JP.thinking;
     showBubble(JP.anri, value);
+    // 仮会話の送信を合図に、ネクタイ動画を1回だけ再生する。
+    playRenMotion();
 
     setTimeout(() => {
       if (status) status.textContent = voiceOn ? JP.speaking : JP.replying;

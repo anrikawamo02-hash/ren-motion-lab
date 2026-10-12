@@ -149,6 +149,7 @@ body { min-height: 100vh; }
 }
 
 .portrait {
+  position: relative;
   overflow: hidden;
   border-radius: 26px;
   background: #22252a;
@@ -178,6 +179,22 @@ body { min-height: 100vh; }
   user-select: none;
   -webkit-user-drag: none;
 }
+
+/* テスト動画は元画像と同じ表示枠を使い、レイアウトを変更しない。 */
+.ren-motion-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 120ms linear;
+}
+.portrait.is-motion-playing .ren-motion-video { opacity: 1; }
+.portrait.is-motion-playing .portrait-stage { opacity: 0; animation-play-state: paused; }
 
 .ren-base { z-index: 1; }
 
